@@ -1,0 +1,7 @@
+node_modules/
+*.pfx
+*.xml
+nota.tx2
+Log/
+XmlDestinatario/
+Impressao/
