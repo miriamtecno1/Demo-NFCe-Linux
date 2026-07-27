@@ -9,11 +9,11 @@ function configurar() {
     versaoManual: 'vm60',
     ambiente: 'HOMOLOGACAO',
     cnpj: '29062609000177',
-    idTokenCSC: '03',
+    idTokenCSC: '000001',
     tokenCSC: '619UV3RDHYKYS96D40F726ERYNH2XGZSWGBJ',
     caminhoCertificado: `${__dirname}/certificado.pfx`,
     senhaCertificado: '50e48c80-3216-4b30-9b1f-db7578b55483',
-    nomeImpressora: 'ELGIN_I9',
+    nomeImpressora: 'PDF',
     diretorioImpressao: `${__dirname}/Impressao`,
     diretorioXmlDestinatario: `${__dirname}/XmlDestinatario`,
   });
@@ -40,7 +40,7 @@ async function main() {
 
   } else if (passo === 'gerar-xml') {
     const tx2 = fs.readFileSync(`${__dirname}/nfce.tx2`, 'utf-8');
-    const xml = await nfce.converterLoteParaXml(tx2, 'pl_009g');
+    const xml = await nfce.converterLoteParaXml(tx2, 'pl_010b');
     fs.writeFileSync(`${__dirname}/nota.xml`, xml);
     console.log('XML gerado e salvo em nota.xml!');
 
@@ -57,12 +57,13 @@ async function main() {
 
   } else if (passo === 'inutilizar') {
     const retorno = await nfce.inutilizar(
-      '26',
-      '29062609000177',
-      '65',
-      '001',
-      '900',
-      '900',
+      '26', //ano
+      '29062609000177', //cnpj
+      '65', //modeloo
+      '001', //serie
+      '900', //num inicial
+      '900',//num final
+
       'Inutilização de numeração não utilizada'
     );
     console.log('Retorno da inutilização:', retorno);
@@ -100,24 +101,13 @@ async function main() {
     const chaveNota = process.argv[3];
     if (!chaveNota) {
       console.log('Informe a chave da nota. Exemplo:');
-      console.log('node index.js imprimir 41260614078130001756509900000118751000871246');
+      console.log('node index.js imprimir 41260429062609000177650600000000671000000220');
       return;
     }
     
     console.log('Tentando imprimir com chave:', chaveNota);
     const retorno = await nfce.imprimir(chaveNota);
     console.log('Retorno da impressão:', retorno);
-
-    //const xml = fs.readFileSync(`${__dirname}/XmlDestinatario/${chaveNota}-nfce.xml`, 'utf-8');
-    //console.log('Primeiros 200 caracteres do XML:', xml.substring(0, 200));
-    //console.log('Tipo:', typeof xml);
-    //const retorno = await nfce.imprimir(xml);
-    //console.log('Retorno da impressão:', retorno);
-
-    //const xml = fs.readFileSync(`${__dirname}/XmlDestinatario/${chaveNota}-nfce.xml`, 'utf-8');
-    //console.log('XML encontrado, tentando imprimir...');
-    //const retorno = await nfce.imprimir(xml);
-    //console.log('Retorno da impressão:', retorno);
 
   } else {
     console.log(`
