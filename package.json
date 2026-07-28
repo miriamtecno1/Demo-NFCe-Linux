@@ -10,6 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "componente-nfce-sdk": "file:componente-nfce-sdk-1.0.0.tgz"
+    "componente-nfce-sdk": "file:componente-nfce-sdk-1.0.0.tgz",
+    "express": "^5.2.1"
   }
 }
