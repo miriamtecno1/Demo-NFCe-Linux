@@ -1,504 +1,193 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Demo NFC-e Linux — TecnoSpeed</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0f1117; --surface: #16181f; --surface2: #1e2029;
-      --border: #2a2d3a; --border2: #3a3d4a;
-      --text: #e8eaf0; --text2: #9097b0; --text3: #555a72;
-      --green: #1D9E75; --green-bg: #0d2e22; --green-border: #1a5c42;
-      --blue: #2d7dd2; --blue-bg: #0d1e2e;
-      --purple: #7c6af7; --purple-bg: #1a1730;
-      --amber: #e6a817; --amber-bg: #2a2010;
-      --red: #e05c5c; --red-bg: #2a1010;
-      --coral: #e07a5c; --coral-bg: #2a1a10;
-      --radius: 8px; --radius-lg: 12px;
-    }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; font-size: 14px; }
-    .sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
-    .sidebar-header { padding: 20px 16px; border-bottom: 1px solid var(--border); }
-    .logo { display: flex; align-items: center; gap: 10px; }
-    .logo-icon { width: 32px; height: 32px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-    .logo-icon i { color: #fff; font-size: 17px; }
-    .logo-title { font-size: 13px; font-weight: 600; color: var(--text); }
-    .logo-sub { font-size: 11px; color: var(--text2); }
-    .sidebar-section { padding: 16px 8px 4px; }
-    .sidebar-label { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; padding: 0 8px 8px; }
-    .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius); cursor: pointer; color: var(--text2); font-size: 13px; transition: all 0.15s; }
-    .nav-item:hover { background: var(--surface2); color: var(--text); }
-    .nav-item.active { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
-    .nav-item i { font-size: 16px; width: 18px; flex-shrink: 0; }
-    .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); margin-left: auto; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .topbar { height: 54px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 12px; flex-shrink: 0; }
-    .topbar-title { font-size: 15px; font-weight: 600; }
-    .badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); font-weight: 500; }
-    .badge-amber { background: var(--amber-bg); color: var(--amber); border-color: #5a4010; }
-    .topbar-right { margin-left: auto; }
-    .content { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
-    .server-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 16px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text2); }
-    .server-bar i { color: var(--green); font-size: 16px; }
-    .server-bar strong { color: var(--text); font-family: monospace; font-size: 12px; }
-    .server-status { margin-left: auto; font-size: 12px; color: var(--green); font-weight: 500; }
-    .section-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
-    .cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; gap: 10px; user-select: none; position: relative; }
-    .card:hover { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-bg); transform: translateY(-1px); }
-    .card:active { transform: scale(0.98); }
-    .card-top { display: flex; align-items: center; justify-content: space-between; }
-    .card-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-    .card-icon i { font-size: 17px; }
-    .ic-green { background: var(--green-bg); color: var(--green); }
-    .ic-blue { background: var(--blue-bg); color: var(--blue); }
-    .ic-purple { background: var(--purple-bg); color: var(--purple); }
-    .ic-amber { background: var(--amber-bg); color: var(--amber); }
-    .ic-red { background: var(--red-bg); color: var(--red); }
-    .ic-coral { background: var(--coral-bg); color: var(--coral); }
-    .step-badge { font-size: 10px; font-weight: 600; color: var(--text3); background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 2px 7px; }
-    .card-title { font-size: 13px; font-weight: 600; color: var(--text); }
-    .card-desc { font-size: 11px; color: var(--text2); line-height: 1.5; }
-    .result-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-    .result-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid var(--border); }
-    .result-title { font-size: 12px; font-weight: 600; color: var(--text2); display: flex; align-items: center; gap: 6px; }
-    .result-body { padding: 16px; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 12px; color: #7ee8a2; line-height: 1.8; min-height: 100px; max-height: 220px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
-    .result-body.erro { color: var(--red); }
-    .result-body.idle { color: var(--text3); font-style: italic; }
-    .clear-btn { font-size: 11px; padding: 4px 10px; border-radius: var(--radius); border: 1px solid var(--border2); background: none; color: var(--text2); cursor: pointer; }
-    .clear-btn:hover { background: var(--surface2); }
-    .spinner { display: none; position: absolute; inset: 0; background: rgba(15,17,23,0.7); border-radius: var(--radius-lg); align-items: center; justify-content: center; }
-    .spinner.show { display: flex; }
-    .spinner i { font-size: 22px; color: var(--green); animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
-    .overlay.open { display: flex; }
-    .dialog { background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; padding: 24px; width: 440px; display: flex; flex-direction: column; gap: 18px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-    .dialog-header { display: flex; align-items: center; justify-content: space-between; }
-    .dialog-title { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-    .dialog-title i { font-size: 18px; }
-    .close-btn { background: none; border: none; cursor: pointer; color: var(--text2); font-size: 20px; padding: 2px; border-radius: var(--radius); display: flex; }
-    .close-btn:hover { color: var(--text); background: var(--surface2); }
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label { font-size: 12px; font-weight: 600; color: var(--text2); }
-    .field input, .field textarea, .field select { font-size: 13px; padding: 9px 12px; border-radius: var(--radius); border: 1px solid var(--border2); background: var(--surface2); color: var(--text); font-family: inherit; width: 100%; outline: none; transition: border-color 0.15s; }
-    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-bg); }
-    .field textarea { resize: vertical; min-height: 80px; }
-    .field-hint { font-size: 11px; color: var(--text3); }
-    .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .dialog-footer { display: flex; justify-content: flex-end; gap: 8px; padding-top: 4px; }
-    .btn-cancel { font-size: 13px; padding: 8px 18px; border-radius: var(--radius); border: 1px solid var(--border2); background: none; color: var(--text2); cursor: pointer; }
-    .btn-cancel:hover { background: var(--surface2); }
-    .btn-confirm { font-size: 13px; padding: 8px 18px; border-radius: var(--radius); border: none; background: var(--green); color: #fff; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500; }
-    .btn-confirm:hover { background: #18845f; }
-    .btn-confirm i { font-size: 15px; }
-    .upload-area { border: 1.5px dashed var(--border2); border-radius: var(--radius); padding: 20px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; transition: border-color 0.15s; }
-    .upload-area:hover { border-color: var(--green); }
-    .upload-area.has-file { border-color: var(--green); background: var(--green-bg); }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
-  </style>
+<meta charset="UTF-8">
+<title>Demo NFC-e Linux — TecnoSpeed</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0c0f18;--sf:#131722;--sf2:#1a1f2e;
+--bd:#252c3f;--bd2:#2f3850;
+--tx:#e8eaf0;--tx2:#8a93b0;--tx3:#4a5270;
+--pr:#1877D2;--pr-bg:#0a1829;--pr-bd:#1a4a8a;--pr-lt:#2196F3;
+--cy:#29B6F6;--cy-bg:#071926;
+--pu:#7c6af7;--pu-bg:#1a1730;
+--am:#e6a817;--am-bg:#201a08;
+--rd:#e05c5c;--rd-bg:#200e0e;
+--co:#e07a5c;--co-bg:#1f1008;
+--r:8px;--rl:12px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);height:100vh;display:flex;overflow:hidden;font-size:14px}
+.sidebar{width:224px;background:var(--sf);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-header{padding:18px 16px;border-bottom:1px solid var(--bd)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;flex-shrink:0}
+.logo-title{font-size:13px;font-weight:700;color:var(--tx);line-height:1.2}
+.logo-sub{font-size:11px;color:var(--tx2)}
+.sb-sec{padding:14px 8px 4px}
+.sb-lbl{font-size:10px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.09em;padding:0 8px 7px}
+.nav{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r);cursor:pointer;color:var(--tx2);font-size:13px;transition:all .12s}
+.nav:hover{background:var(--sf2);color:var(--tx)}
+.nav.active{background:var(--pr-bg);color:var(--pr-lt);border:1px solid var(--pr-bd)}
+.nav i{font-size:16px;width:18px;flex-shrink:0}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--pr-lt);margin-left:auto;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:54px;background:var(--sf);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 24px;gap:12px;flex-shrink:0}
+.topbar-title{font-size:15px;font-weight:600}
+.badge{font-size:11px;padding:3px 10px;border-radius:20px;background:var(--pr-bg);color:var(--pr-lt);border:1px solid var(--pr-bd);font-weight:500}
+.badge-am{background:var(--am-bg);color:var(--am);border-color:#4a3a08}
+.tr{margin-left:auto}
+.content{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:24px}
+.sbar{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:10px 16px;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--tx2)}
+.sbar i{color:var(--pr-lt);font-size:16px}
+.sbar strong{color:var(--tx);font-family:monospace;font-size:12px}
+.sbar-st{margin-left:auto;font-size:12px;color:var(--pr-lt);font-weight:500}
+.slbl{font-size:11px;font-weight:700;color:var(--tx3);text-transform:uppercase;letter-spacing:.09em;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);padding:16px;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;gap:10px;user-select:none;position:relative}
+.card:hover{border-color:var(--pr);box-shadow:0 0 0 3px var(--pr-bg);transform:translateY(-1px)}
+.card:active{transform:scale(.98)}
+.ct{display:flex;align-items:center;justify-content:space-between}
+.ci{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.ci i{font-size:17px}
+.ic-pr{background:var(--pr-bg);color:var(--pr-lt)}
+.ic-cy{background:var(--cy-bg);color:var(--cy)}
+.ic-pu{background:var(--pu-bg);color:var(--pu)}
+.ic-am{background:var(--am-bg);color:var(--am)}
+.ic-rd{background:var(--rd-bg);color:var(--rd)}
+.ic-co{background:var(--co-bg);color:var(--co)}
+.sb{font-size:10px;font-weight:600;color:var(--tx3);background:var(--sf2);border:1px solid var(--bd);border-radius:20px;padding:2px 7px}
+.ct2{font-size:13px;font-weight:600;color:var(--tx)}
+.cd{font-size:11px;color:var(--tx2);line-height:1.5}
+.rw{background:var(--sf);border:1px solid var(--bd);border-radius:var(--rl);overflow:hidden}
+.rh{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--bd)}
+.rt{font-size:12px;font-weight:600;color:var(--tx2);display:flex;align-items:center;gap:6px}
+.rb{padding:16px;font-family:monospace;font-size:12px;color:#7ec8f8;line-height:1.8;min-height:100px;max-height:220px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+.rb.err{color:var(--rd)}
+.rb.idle{color:var(--tx3);font-style:italic}
+.cb{font-size:11px;padding:4px 10px;border-radius:var(--r);border:1px solid var(--bd2);background:none;color:var(--tx2);cursor:pointer}
+.sp{display:none;position:absolute;inset:0;background:rgba(12,15,24,.75);border-radius:var(--rl);align-items:center;justify-content:center}
+.sp.show{display:flex}
+.sp i{font-size:22px;color:var(--pr-lt);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.ov.open{display:flex}
+.dlg{background:var(--sf);border:1px solid var(--bd2);border-radius:14px;padding:24px;width:440px;display:flex;flex-direction:column;gap:18px;box-shadow:0 24px 64px rgba(0,0,0,.6)}
+.dh{display:flex;align-items:center;justify-content:space-between}
+.dt{font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px}
+.xb{background:none;border:none;cursor:pointer;color:var(--tx2);font-size:20px;padding:2px;border-radius:var(--r);display:flex}
+.fld{display:flex;flex-direction:column;gap:6px}
+.fld label{font-size:12px;font-weight:600;color:var(--tx2)}
+.fld input,.fld textarea,.fld select{font-size:13px;padding:9px 12px;border-radius:var(--r);border:1px solid var(--bd2);background:var(--sf2);color:var(--tx);font-family:inherit;width:100%;outline:none;transition:border-color .15s}
+.fld input:focus,.fld textarea:focus,.fld select:focus{border-color:var(--pr);box-shadow:0 0 0 3px var(--pr-bg)}
+.fld textarea{resize:vertical;min-height:80px}
+.fh{font-size:11px;color:var(--tx3)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.df{display:flex;justify-content:flex-end;gap:8px;padding-top:4px}
+.bcn{font-size:13px;padding:8px 18px;border-radius:var(--r);border:1px solid var(--bd2);background:none;color:var(--tx2);cursor:pointer}
+.bco{font-size:13px;padding:8px 18px;border-radius:var(--r);border:none;background:var(--pr);color:#fff;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:600}
+.bco:hover{background:var(--pr-lt)}
+.ua{border:1.5px dashed var(--bd2);border-radius:var(--r);padding:20px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;transition:border-color .15s}
+.ua:hover{border-color:var(--pr)}
+.ua.ok{border-color:var(--pr);background:var(--pr-bg)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+</style>
 </head>
 <body>
-
 <div class="sidebar">
   <div class="sidebar-header">
     <div class="logo">
-      <div class="logo-icon"><i class="ti ti-receipt-2"></i></div>
-      <div>
-        <div class="logo-title">NFC-e Linux</div>
-        <div class="logo-sub">TecnoSpeed</div>
-      </div>
+      <svg class="logo-icon" viewBox="0 0 34 34" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#29B6F6"/><stop offset="100%" stop-color="#1565C0"/></linearGradient></defs>
+        <rect width="34" height="34" rx="7" fill="url(#g)"/>
+        <path d="M8 11.5L14 17L8 22.5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M15 11.5L21 17L15 22.5" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+        <rect x="9.5" y="15" width="4" height="4" rx="1.2" fill="white"/>
+      </svg>
+      <div><div class="logo-title">NFC-e Linux</div><div class="logo-sub">TecnoSpeed</div></div>
     </div>
   </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">Geral</div>
-    <div class="nav-item active"><i class="ti ti-layout-dashboard"></i> Painel geral <span class="nav-dot"></span></div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Geral</div>
+    <div class="nav active"><i class="ti ti-layout-dashboard"></i> Painel geral <span class="dot"></span></div>
   </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">Fluxo de emissão</div>
-    <div class="nav-item"><i class="ti ti-adjustments-horizontal"></i> Configurações</div>
-    <div class="nav-item"><i class="ti ti-file-code"></i> Gerar XML</div>
-    <div class="nav-item"><i class="ti ti-pen"></i> Assinar nota</div>
-    <div class="nav-item"><i class="ti ti-send"></i> Enviar nota</div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Fluxo de emissão</div>
+    <div class="nav"><i class="ti ti-adjustments-horizontal"></i> Configurações</div>
+    <div class="nav"><i class="ti ti-file-code"></i> Gerar XML</div>
+    <div class="nav"><i class="ti ti-signature"></i> Assinar nota</div>
+    <div class="nav"><i class="ti ti-send"></i> Enviar nota</div>
   </div>
-  <div class="sidebar-section">
-    <div class="sidebar-label">Utilitários</div>
-    <div class="nav-item"><i class="ti ti-wifi"></i> Status SEFAZ</div>
-    <div class="nav-item"><i class="ti ti-search"></i> Consultar nota</div>
-    <div class="nav-item"><i class="ti ti-printer"></i> Imprimir</div>
-    <div class="nav-item"><i class="ti ti-ban"></i> Cancelar nota</div>
-    <div class="nav-item"><i class="ti ti-trash"></i> Inutilizar</div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Utilitários</div>
+    <div class="nav"><i class="ti ti-wifi"></i> Status SEFAZ</div>
+    <div class="nav"><i class="ti ti-search"></i> Consultar nota</div>
+    <div class="nav"><i class="ti ti-printer"></i> Imprimir</div>
+    <div class="nav"><i class="ti ti-ban"></i> Cancelar nota</div>
+    <div class="nav"><i class="ti ti-trash"></i> Inutilizar</div>
   </div>
 </div>
-
 <div class="main">
   <div class="topbar">
     <span class="topbar-title">Painel geral</span>
     <span class="badge">Homologação</span>
-    <div class="topbar-right">
-      <span class="badge badge-amber" id="server-badge">⬤ Verificando servidor...</span>
-    </div>
+    <div class="tr"><span class="badge badge-am" id="sbadge">&#x25C9; Verificando...</span></div>
   </div>
   <div class="content">
-    <div class="server-bar">
-      <div class="nav-dot"></div>
-      <i class="ti ti-server"></i>
-      Componente Linux — <strong>/tmp/tecno-core</strong>
-      <span class="server-status">● Conectado</span>
+    <div class="sbar">
+      <div class="dot"></div><i class="ti ti-server"></i>
+      Componente Linux &mdash; <strong>/tmp/tecno-core</strong>
+      <span class="sbar-st">&#x25CF; Conectado</span>
     </div>
-
     <div>
-      <div class="section-label">Fluxo de emissão</div>
-      <div class="cards-grid">
-        <div class="card" onclick="exec('loadConfig')">
-          <div class="spinner" id="spin-loadConfig"><i class="ti ti-loader-2"></i></div>
-          <div class="card-top"><div class="card-icon ic-amber"><i class="ti ti-adjustments-horizontal"></i></div><span class="step-badge">1</span></div>
-          <div class="card-title">Carregar configurações</div>
-          <div class="card-desc">Inicializa o componente com credenciais e diretórios.</div>
-        </div>
-        <div class="card" onclick="openDialog('gerar-xml')">
-          <div class="spinner" id="spin-gerar-xml"><i class="ti ti-loader-2"></i></div>
-          <div class="card-top"><div class="card-icon ic-blue"><i class="ti ti-file-code"></i></div><span class="step-badge">2</span></div>
-          <div class="card-title">Gerar XML via TX2</div>
-          <div class="card-desc">Converte o arquivo TX2 para XML no padrão SEFAZ.</div>
-        </div>
-        <div class="card" onclick="exec('assinar')">
-          <div class="spinner" id="spin-assinar"><i class="ti ti-loader-2"></i></div>
-          <div class="card-top"><div class="card-icon ic-purple"><i class="ti ti-pen"></i></div><span class="step-badge">3</span></div>
-          <div class="card-title">Assinar nota</div>
-          <div class="card-desc">Assina o XML com o certificado digital A1.</div>
-        </div>
-        <div class="card" onclick="exec('enviar')">
-          <div class="spinner" id="spin-enviar"><i class="ti ti-loader-2"></i></div>
-          <div class="card-top"><div class="card-icon ic-green"><i class="ti ti-send"></i></div><span class="step-badge">4</span></div>
-          <div class="card-title">Enviar nota</div>
-          <div class="card-desc">Envia a nota assinada para a SEFAZ em modo síncrono.</div>
-        </div>
+      <div class="slbl">Fluxo de emissão</div>
+      <div class="grid">
+        <div class="card" onclick="ex('loadConfig')"><div class="sp" id="sp-loadConfig"><i class="ti ti-loader-2"></i></div><div class="ct"><div class="ci ic-am"><i class="ti ti-adjustments-horizontal"></i></div><span class="sb">1</span></div><div class="ct2">Carregar configurações</div><div class="cd">Inicializa o componente com credenciais e diretórios.</div></div>
+        <div class="card" onclick="od('gerar-xml')"><div class="sp" id="sp-gerar-xml"><i class="ti ti-loader-2"></i></div><div class="ct"><div class="ci ic-pr"><i class="ti ti-file-code"></i></div><span class="sb">2</span></div><div class="ct2">Gerar XML via TX2</div><div class="cd">Converte o arquivo TX2 para XML no padrão SEFAZ.</div></div>
+        <div class="card" onclick="ex('assinar')"><div class="sp" id="sp-assinar"><i class="ti ti-loader-2"></i></div><div class="ct"><div class="ci ic-pu"><i class="ti ti-signature"></i></div><span class="sb">3</span></div><div class="ct2">Assinar nota</div><div class="cd">Assina o XML com o certificado digital A1.</div></div>
+        <div class="card" onclick="ex('enviar')"><div class="sp" id="sp-enviar"><i class="ti ti-loader-2"></i></div><div class="ct"><div class="ci ic-cy"><i class="ti ti-send"></i></div><span class="sb">4</span></div><div class="ct2">Enviar nota</div><div class="cd">Envia a nota assinada para a SEFAZ em modo síncrono.</div></div>
       </div>
     </div>
-
     <div>
-      <div class="section-label">Utilitários</div>
-      <div class="cards-grid">
-        <div class="card" onclick="exec('status')">
-          <div class="spinner" id="spin-status"><i class="ti ti-loader-2"></i></div>
-          <div class="card-top"><div class="card-icon ic-green"><i class="ti ti-wifi"></i></div></div>
-          <div class="card-title">Status serviço</div>
-          <div class="card-desc">Verifica se o WebService da SEFAZ está em operação.</div>
-        </div>
-        <div class="card" onclick="openDialog('consultar')">
-          <div class="spinner" id="spin-consultar"><i class="ti ti-loader-2"></i></div>
-          <div class="card-top"><div class="card-icon ic-blue"><i class="ti ti-search"></i></div></div>
-          <div class="card-title">Consultar nota</div>
-          <div class="card-desc">Consulta uma NFC-e pela chave de 44 dígitos.</div>
-        </div>
-        <div class="card" onclick="openDialog('imprimir')">
-          <div class="spinner" id="spin-imprimir"><i class="ti ti-loader-2"></i></div>
-          <div class="card-top"><div class="card-icon ic-amber"><i class="ti ti-printer"></i></div></div>
-          <div class="card-title">Imprimir</div>
-          <div class="card-desc">Imprime o DANFCe na impressora configurada.</div>
-        </div>
-        <div class="card" onclick="openDialog('cancelar')">
-          <div class="spinner" id="spin-cancelar"><i class="ti ti-loader-2"></i></div>
-          <div class="card-top"><div class="card-icon ic-red"><i class="ti ti-ban"></i></div></div>
-          <div class="card-title">Cancelar nota</div>
-          <div class="card-desc">Cancela uma NFC-e já autorizada pela SEFAZ.</div>
-        </div>
-        <div class="card" onclick="openDialog('inutilizar')">
-          <div class="spinner" id="spin-inutilizar"><i class="ti ti-loader-2"></i></div>
-          <div class="card-top"><div class="card-icon ic-coral"><i class="ti ti-trash"></i></div></div>
-          <div class="card-title">Inutilizar</div>
-          <div class="card-desc">Inutiliza uma faixa de numeração não utilizada.</div>
-        </div>
-        <div class="card" onclick="exec('getConfig')">
-          <div class="spinner" id="spin-getConfig"><i class="ti ti-loader-2"></i></div>
-          <div class="card-top"><div class="card-icon ic-purple"><i class="ti ti-settings"></i></div></div>
-          <div class="card-title">Get Config</div>
-          <div class="card-desc">Busca as configurações atuais do componente.</div>
-        </div>
+      <div class="slbl">Utilitários</div>
+      <div class="grid">
+        <div class="card" onclick="ex('status')"><div class="sp" id="sp-status"><i class="ti ti-loader-2"></i></div><div class="ct"><div class="ci ic-pr"><i class="ti ti-wifi"></i></div></div><div class="ct2">Status serviço</div><div class="cd">Verifica se o WebService da SEFAZ está em operação.</div></div>
+        <div class="card" onclick="od('consultar')"><div class="sp" id="sp-consultar"><i class="ti ti-loader-2"></i></div><div class="ct"><div class="ci ic-cy"><i class="ti ti-search"></i></div></div><div class="ct2">Consultar nota</div><div class="cd">Consulta uma NFC-e pela chave de 44 dígitos.</div></div>
+        <div class="card" onclick="od('imprimir')"><div class="sp" id="sp-imprimir"><i class="ti ti-loader-2"></i></div><div class="ct"><div class="ci ic-am"><i class="ti ti-printer"></i></div></div><div class="ct2">Imprimir</div><div class="cd">Imprime o DANFCe na impressora configurada.</div></div>
+        <div class="card" onclick="od('cancelar')"><div class="sp" id="sp-cancelar"><i class="ti ti-loader-2"></i></div><div class="ct"><div class="ci ic-rd"><i class="ti ti-ban"></i></div></div><div class="ct2">Cancelar nota</div><div class="cd">Cancela uma NFC-e já autorizada pela SEFAZ.</div></div>
+        <div class="card" onclick="od('inutilizar')"><div class="sp" id="sp-inutilizar"><i class="ti ti-loader-2"></i></div><div class="ct"><div class="ci ic-co"><i class="ti ti-trash"></i></div></div><div class="ct2">Inutilizar</div><div class="cd">Inutiliza uma faixa de numeração não utilizada.</div></div>
+        <div class="card" onclick="ex('getConfig')"><div class="sp" id="sp-getConfig"><i class="ti ti-loader-2"></i></div><div class="ct"><div class="ci ic-pu"><i class="ti ti-settings"></i></div></div><div class="ct2">Get Config</div><div class="cd">Busca as configurações atuais do componente.</div></div>
       </div>
     </div>
-
-    <div class="result-wrap">
-      <div class="result-header">
-        <div class="result-title"><i class="ti ti-terminal-2"></i> Último retorno</div>
-        <button class="clear-btn" onclick="clearResult()">Limpar</button>
-      </div>
-      <div class="result-body idle" id="result-box">Nenhuma ação executada ainda...</div>
+    <div class="rw">
+      <div class="rh"><div class="rt"><i class="ti ti-terminal-2"></i> Último retorno</div><button class="cb" onclick="clr()">Limpar</button></div>
+      <div class="rb idle" id="rb">Nenhuma ação executada ainda...</div>
     </div>
   </div>
 </div>
-
-<!-- DIALOG: Gerar XML -->
-<div class="overlay" id="dialog-gerar-xml">
-  <div class="dialog">
-    <div class="dialog-header">
-      <div class="dialog-title"><i class="ti ti-file-code" style="color:var(--blue)"></i> Gerar XML via TX2</div>
-      <button class="close-btn" onclick="closeDialog('gerar-xml')"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="field">
-      <label>Arquivo TX2</label>
-      <div class="upload-area" onclick="document.getElementById('tx2-file').click()" id="upload-area">
-        <i class="ti ti-upload" style="font-size:24px; color:var(--text3)"></i>
-        <span id="tx2-label" style="font-size:12px; color:var(--text2)">Clique para selecionar o arquivo .tx2</span>
-      </div>
-      <input type="file" id="tx2-file" accept=".tx2,.txt" style="display:none" onchange="setTx2File(this)">
-    </div>
-    <div class="field">
-      <label>Versão do esquema</label>
-      <select id="versaoEsquema">
-        <option value="pl_009g">pl_009g</option>
-        <option value="pl_009">pl_009</option>
-        <option value="pl_010b" selected>pl_010b</option>
-      </select>
-    </div>
-    <div class="dialog-footer">
-      <button class="btn-cancel" onclick="closeDialog('gerar-xml')">Cancelar</button>
-      <button class="btn-confirm" onclick="confirmGerarXml()"><i class="ti ti-player-play"></i> Executar</button>
-    </div>
-  </div>
-</div>
-
-<!-- DIALOG: Consultar -->
-<div class="overlay" id="dialog-consultar">
-  <div class="dialog">
-    <div class="dialog-header">
-      <div class="dialog-title"><i class="ti ti-search" style="color:var(--blue)"></i> Consultar nota</div>
-      <button class="close-btn" onclick="closeDialog('consultar')"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="field">
-      <label>Chave de acesso</label>
-      <input type="text" id="consultar-chave" placeholder="44 dígitos da chave NFC-e" maxlength="44">
-      <span class="field-hint">Ex: 41260614078130001756509900000118751000871246</span>
-    </div>
-    <div class="dialog-footer">
-      <button class="btn-cancel" onclick="closeDialog('consultar')">Cancelar</button>
-      <button class="btn-confirm" onclick="confirmConsultar()"><i class="ti ti-search"></i> Consultar</button>
-    </div>
-  </div>
-</div>
-
-<!-- DIALOG: Imprimir -->
-<div class="overlay" id="dialog-imprimir">
-  <div class="dialog">
-    <div class="dialog-header">
-      <div class="dialog-title"><i class="ti ti-printer" style="color:var(--amber)"></i> Imprimir DANFCe</div>
-      <button class="close-btn" onclick="closeDialog('imprimir')"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="field">
-      <label>Chave de acesso</label>
-      <input type="text" id="imprimir-chave" placeholder="44 dígitos da chave NFC-e" maxlength="44">
-      <span class="field-hint">A nota precisa ter sido previamente autorizada pelo componente.</span>
-    </div>
-    <div class="dialog-footer">
-      <button class="btn-cancel" onclick="closeDialog('imprimir')">Cancelar</button>
-      <button class="btn-confirm" onclick="confirmImprimir()"><i class="ti ti-printer"></i> Imprimir</button>
-    </div>
-  </div>
-</div>
-
-<!-- DIALOG: Cancelar -->
-<div class="overlay" id="dialog-cancelar">
-  <div class="dialog">
-    <div class="dialog-header">
-      <div class="dialog-title"><i class="ti ti-ban" style="color:var(--red)"></i> Cancelar nota</div>
-      <button class="close-btn" onclick="closeDialog('cancelar')"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="field">
-      <label>Chave de acesso</label>
-      <input type="text" id="cancelar-chave" placeholder="44 dígitos da chave NFC-e" maxlength="44">
-    </div>
-    <div class="field">
-      <label>Protocolo de autorização</label>
-      <input type="text" id="cancelar-protocolo" placeholder="15 dígitos do protocolo">
-      <span class="field-hint">Encontrado no XML de retorno do envio.</span>
-    </div>
-    <div class="field">
-      <label>Justificativa</label>
-      <textarea id="cancelar-justificativa" placeholder="Mínimo de 15 caracteres..."></textarea>
-    </div>
-    <div class="fields-row">
-      <div class="field">
-        <label>Data e hora do evento</label>
-        <input type="datetime-local" id="cancelar-data">
-      </div>
-      <div class="field">
-        <label>Fuso horário</label>
-        <select id="cancelar-fuso">
-          <option value="-03:00">-03:00 (Brasília)</option>
-          <option value="-04:00">-04:00 (Manaus)</option>
-          <option value="-05:00">-05:00 (Acre)</option>
-        </select>
-      </div>
-    </div>
-    <div class="dialog-footer">
-      <button class="btn-cancel" onclick="closeDialog('cancelar')">Cancelar</button>
-      <button class="btn-confirm" onclick="confirmCancelar()"><i class="ti ti-ban"></i> Cancelar nota</button>
-    </div>
-  </div>
-</div>
-
-<!-- DIALOG: Inutilizar -->
-<div class="overlay" id="dialog-inutilizar">
-  <div class="dialog">
-    <div class="dialog-header">
-      <div class="dialog-title"><i class="ti ti-trash" style="color:var(--coral)"></i> Inutilizar numeração</div>
-      <button class="close-btn" onclick="closeDialog('inutilizar')"><i class="ti ti-x"></i></button>
-    </div>
-    <div class="fields-row">
-      <div class="field"><label>Ano (YY)</label><input type="text" id="inut-ano" placeholder="Ex: 26" maxlength="2"></div>
-      <div class="field"><label>Série</label><input type="text" id="inut-serie" placeholder="Ex: 001"></div>
-    </div>
-    <div class="fields-row">
-      <div class="field"><label>Número inicial</label><input type="text" id="inut-ini" placeholder="Ex: 900"></div>
-      <div class="field"><label>Número final</label><input type="text" id="inut-fim" placeholder="Ex: 900"></div>
-    </div>
-    <div class="field">
-      <label>Justificativa</label>
-      <textarea id="inut-justificativa" placeholder="Mínimo de 15 caracteres..."></textarea>
-    </div>
-    <div class="dialog-footer">
-      <button class="btn-cancel" onclick="closeDialog('inutilizar')">Cancelar</button>
-      <button class="btn-confirm" onclick="confirmInutilizar()"><i class="ti ti-trash"></i> Inutilizar</button>
-    </div>
-  </div>
-</div>
-
+<div class="ov" id="ov-gerar-xml"><div class="dlg"><div class="dh"><div class="dt"><i class="ti ti-file-code" style="color:var(--pr-lt)"></i> Gerar XML via TX2</div><button class="xb" onclick="cd('gerar-xml')"><i class="ti ti-x"></i></button></div><div class="fld"><label>Arquivo TX2</label><div class="ua" onclick="document.getElementById('tf').click()" id="ua"><i class="ti ti-upload" style="font-size:24px;color:var(--tx3)"></i><span id="tl" style="font-size:12px;color:var(--tx2)">Clique para selecionar o arquivo .tx2</span></div><input type="file" id="tf" accept=".tx2,.txt" style="display:none" onchange="stf(this)"></div><div class="fld"><label>Versão do esquema</label><select id="ve"><option value="pl_009g">pl_009g</option><option value="pl_009">pl_009</option><option value="pl_010b" selected>pl_010b</option></select></div><div class="df"><button class="bcn" onclick="cd('gerar-xml')">Cancelar</button><button class="bco" onclick="cgx()"><i class="ti ti-player-play"></i> Executar</button></div></div></div>
+<div class="ov" id="ov-consultar"><div class="dlg"><div class="dh"><div class="dt"><i class="ti ti-search" style="color:var(--cy)"></i> Consultar nota</div><button class="xb" onclick="cd('consultar')"><i class="ti ti-x"></i></button></div><div class="fld"><label>Chave de acesso</label><input type="text" id="ck" placeholder="44 dígitos da chave NFC-e" maxlength="44"><span class="fh">Ex: 41260614078130001756509900000118751000871246</span></div><div class="df"><button class="bcn" onclick="cd('consultar')">Cancelar</button><button class="bco" onclick="cc()"><i class="ti ti-search"></i> Consultar</button></div></div></div>
+<div class="ov" id="ov-imprimir"><div class="dlg"><div class="dh"><div class="dt"><i class="ti ti-printer" style="color:var(--am)"></i> Imprimir DANFCe</div><button class="xb" onclick="cd('imprimir')"><i class="ti ti-x"></i></button></div><div class="fld"><label>Chave de acesso</label><input type="text" id="ik" placeholder="44 dígitos da chave NFC-e" maxlength="44"><span class="fh">A nota precisa ter sido previamente autorizada pelo componente.</span></div><div class="df"><button class="bcn" onclick="cd('imprimir')">Cancelar</button><button class="bco" onclick="ci()"><i class="ti ti-printer"></i> Imprimir</button></div></div></div>
+<div class="ov" id="ov-cancelar"><div class="dlg"><div class="dh"><div class="dt"><i class="ti ti-ban" style="color:var(--rd)"></i> Cancelar nota</div><button class="xb" onclick="cd('cancelar')"><i class="ti ti-x"></i></button></div><div class="fld"><label>Chave de acesso</label><input type="text" id="cak" placeholder="44 dígitos" maxlength="44"></div><div class="fld"><label>Protocolo de autorização</label><input type="text" id="cap" placeholder="15 dígitos do protocolo"><span class="fh">Encontrado no XML de retorno do envio.</span></div><div class="fld"><label>Justificativa</label><textarea id="caj" placeholder="Mínimo de 15 caracteres..."></textarea></div><div class="fr"><div class="fld"><label>Data e hora do evento</label><input type="datetime-local" id="cad"></div><div class="fld"><label>Fuso horário</label><select id="caf"><option value="-03:00">-03:00 (Brasília)</option><option value="-04:00">-04:00 (Manaus)</option><option value="-05:00">-05:00 (Acre)</option></select></div></div><div class="df"><button class="bcn" onclick="cd('cancelar')">Cancelar</button><button class="bco" onclick="cca()"><i class="ti ti-ban"></i> Cancelar nota</button></div></div></div>
+<div class="ov" id="ov-inutilizar"><div class="dlg"><div class="dh"><div class="dt"><i class="ti ti-trash" style="color:var(--co)"></i> Inutilizar numeração</div><button class="xb" onclick="cd('inutilizar')"><i class="ti ti-x"></i></button></div><div class="fr"><div class="fld"><label>Ano (YY)</label><input type="text" id="ia" placeholder="Ex: 26" maxlength="2"></div><div class="fld"><label>Série</label><input type="text" id="is" placeholder="Ex: 001"></div></div><div class="fr"><div class="fld"><label>Número inicial</label><input type="text" id="ii" placeholder="Ex: 900"></div><div class="fld"><label>Número final</label><input type="text" id="if2" placeholder="Ex: 900"></div></div><div class="fld"><label>Justificativa</label><textarea id="ij" placeholder="Mínimo de 15 caracteres..."></textarea></div><div class="df"><button class="bcn" onclick="cd('inutilizar')">Cancelar</button><button class="bco" onclick="cin()"><i class="ti ti-trash"></i> Inutilizar</button></div></div></div>
 <script>
-  let tx2FileContent = null;
-
-  function openDialog(id) { document.getElementById('dialog-' + id).classList.add('open'); }
-  function closeDialog(id) { document.getElementById('dialog-' + id).classList.remove('open'); }
-  function showResult(text, isError = false) {
-    const el = document.getElementById('result-box');
-    el.className = 'result-body' + (isError ? ' erro' : '');
-    el.textContent = text;
-  }
-  function clearResult() {
-    const el = document.getElementById('result-box');
-    el.className = 'result-body idle';
-    el.textContent = 'Nenhuma ação executada ainda...';
-  }
-  function spin(id, show) {
-    const el = document.getElementById('spin-' + id);
-    if (el) el.classList.toggle('show', show);
-  }
-  function setTx2File(input) {
-    if (input.files && input.files[0]) {
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        tx2FileContent = e.target.result;
-        document.getElementById('tx2-label').textContent = file.name;
-        document.getElementById('upload-area').classList.add('has-file');
-      };
-      reader.readAsText(file, 'latin1');
-    }
-  }
-  async function exec(acao) {
-    spin(acao, true);
-    try {
-      const isGet = ['status', 'getConfig'].includes(acao);
-      const res = await fetch('/api/' + acao, { method: isGet ? 'GET' : 'POST', headers: { 'Content-Type': 'application/json' } });
-      const data = await res.json();
-      showResult(typeof data.retorno === 'object' ? JSON.stringify(data.retorno, null, 2) : data.retorno, !data.sucesso);
-    } catch (e) { showResult('Erro de conexão: ' + e.message, true); }
-    finally { spin(acao, false); }
-  }
-  async function confirmGerarXml() {
-    if (!tx2FileContent) return alert('Selecione um arquivo TX2.');
-    const versaoEsquema = document.getElementById('versaoEsquema').value;
-    closeDialog('gerar-xml');
-    spin('gerar-xml', true);
-    try {
-      const res = await fetch('/api/gerar-xml', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ versaoEsquema, tx2Content: tx2FileContent }) });
-      const data = await res.json();
-      showResult(data.retorno, !data.sucesso);
-    } catch (e) { showResult('Erro: ' + e.message, true); }
-    finally { spin('gerar-xml', false); }
-  }
-  async function confirmConsultar() {
-    const chaveNota = document.getElementById('consultar-chave').value.trim();
-    if (!chaveNota) return alert('Informe a chave da nota.');
-    closeDialog('consultar');
-    spin('consultar', true);
-    try {
-      const res = await fetch('/api/consultar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chaveNota }) });
-      const data = await res.json();
-      showResult(data.retorno, !data.sucesso);
-    } catch (e) { showResult('Erro: ' + e.message, true); }
-    finally { spin('consultar', false); }
-  }
-  async function confirmImprimir() {
-    const chaveNota = document.getElementById('imprimir-chave').value.trim();
-    if (!chaveNota) return alert('Informe a chave da nota.');
-    closeDialog('imprimir');
-    spin('imprimir', true);
-    try {
-      const res = await fetch('/api/imprimir', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chaveNota }) });
-      const data = await res.json();
-      showResult(data.retorno, !data.sucesso);
-    } catch (e) { showResult('Erro: ' + e.message, true); }
-    finally { spin('imprimir', false); }
-  }
-  async function confirmCancelar() {
-    const chaveNota = document.getElementById('cancelar-chave').value.trim();
-    const protocolo = document.getElementById('cancelar-protocolo').value.trim();
-    const justificativa = document.getElementById('cancelar-justificativa').value.trim();
-    const dataHoraEvento = document.getElementById('cancelar-data').value;
-    const fusoHorario = document.getElementById('cancelar-fuso').value;
-    if (!chaveNota || !protocolo) return alert('Chave e protocolo são obrigatórios.');
-    closeDialog('cancelar');
-    spin('cancelar', true);
-    try {
-      const res = await fetch('/api/cancelar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chaveNota, protocolo, justificativa, dataHoraEvento, fusoHorario }) });
-      const data = await res.json();
-      showResult(data.retorno, !data.sucesso);
-    } catch (e) { showResult('Erro: ' + e.message, true); }
-    finally { spin('cancelar', false); }
-  }
-  async function confirmInutilizar() {
-    const ano = document.getElementById('inut-ano').value.trim();
-    const serie = document.getElementById('inut-serie').value.trim();
-    const numeroInicial = document.getElementById('inut-ini').value.trim();
-    const numeroFinal = document.getElementById('inut-fim').value.trim();
-    const justificativa = document.getElementById('inut-justificativa').value.trim();
-    if (!ano || !serie || !numeroInicial || !numeroFinal) return alert('Preencha todos os campos obrigatórios.');
-    closeDialog('inutilizar');
-    spin('inutilizar', true);
-    try {
-      const res = await fetch('/api/inutilizar', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ano, serie, numeroInicial, numeroFinal, justificativa }) });
-      const data = await res.json();
-      showResult(data.retorno, !data.sucesso);
-    } catch (e) { showResult('Erro: ' + e.message, true); }
-    finally { spin('inutilizar', false); }
-  }
-  document.querySelectorAll('.overlay').forEach(el => {
-    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-  });
-  window.addEventListener('load', async () => {
-    const badge = document.getElementById('server-badge');
-    try {
-      const res = await fetch('/api/status');
-      const data = await res.json();
-      if (data.sucesso) {
-        badge.textContent = '⬤ Servidor online';
-        badge.style.background = 'var(--green-bg)';
-        badge.style.color = 'var(--green)';
-        badge.style.borderColor = 'var(--green-border)';
-      }
-    } catch {
-      badge.textContent = '⬤ Servidor offline';
-      badge.style.background = 'var(--red-bg)';
-      badge.style.color = 'var(--red)';
-    }
-  });
+let tx=null;
+function od(i){document.getElementById('ov-'+i).classList.add('open')}
+function cd(i){document.getElementById('ov-'+i).classList.remove('open')}
+function sr(t,e){const el=document.getElementById('rb');el.className='rb'+(e?' err':'');el.textContent=t}
+function clr(){const el=document.getElementById('rb');el.className='rb idle';el.textContent='Nenhuma ação executada ainda...'}
+function sp(i,s){const el=document.getElementById('sp-'+i);if(el)el.classList.toggle('show',s)}
+function stf(inp){if(inp.files&&inp.files[0]){const f=inp.files[0];const r=new FileReader();r.onload=function(e){tx=e.target.result;document.getElementById('tl').textContent=f.name;document.getElementById('ua').classList.add('ok')};r.readAsText(f,'latin1')}}
+async function ex(a){sp(a,true);try{const g=a==='status'||a==='getConfig';const r=await fetch('/api/'+a,{method:g?'GET':'POST',headers:{'Content-Type':'application/json'}});const d=await r.json();sr(typeof d.retorno==='object'?JSON.stringify(d.retorno,null,2):d.retorno,!d.sucesso)}catch(e){sr('Erro: '+e.message,true)}finally{sp(a,false)}}
+async function cgx(){if(!tx)return alert('Selecione um arquivo TX2.');const v=document.getElementById('ve').value;cd('gerar-xml');sp('gerar-xml',true);try{const r=await fetch('/api/gerar-xml',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({versaoEsquema:v,tx2Content:tx})});const d=await r.json();sr(d.retorno,!d.sucesso)}catch(e){sr('Erro: '+e.message,true)}finally{sp('gerar-xml',false)}}
+async function cc(){const c=document.getElementById('ck').value.trim();if(!c)return alert('Informe a chave.');cd('consultar');sp('consultar',true);try{const r=await fetch('/api/consultar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chaveNota:c})});const d=await r.json();sr(d.retorno,!d.sucesso)}catch(e){sr('Erro: '+e.message,true)}finally{sp('consultar',false)}}
+async function ci(){const c=document.getElementById('ik').value.trim();if(!c)return alert('Informe a chave.');cd('imprimir');sp('imprimir',true);try{const r=await fetch('/api/imprimir',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chaveNota:c})});const d=await r.json();sr(d.retorno,!d.sucesso)}catch(e){sr('Erro: '+e.message,true)}finally{sp('imprimir',false)}}
+async function cca(){const k=document.getElementById('cak').value.trim();const p=document.getElementById('cap').value.trim();if(!k||!p)return alert('Chave e protocolo são obrigatórios.');cd('cancelar');sp('cancelar',true);try{const r=await fetch('/api/cancelar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chaveNota:k,protocolo:p,justificativa:document.getElementById('caj').value,dataHoraEvento:document.getElementById('cad').value,fusoHorario:document.getElementById('caf').value})});const d=await r.json();sr(d.retorno,!d.sucesso)}catch(e){sr('Erro: '+e.message,true)}finally{sp('cancelar',false)}}
+async function cin(){const a=document.getElementById('ia').value.trim();const s=document.getElementById('is').value.trim();const i=document.getElementById('ii').value.trim();const f=document.getElementById('if2').value.trim();if(!a||!s||!i||!f)return alert('Preencha todos os campos.');cd('inutilizar');sp('inutilizar',true);try{const r=await fetch('/api/inutilizar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ano:a,serie:s,numeroInicial:i,numeroFinal:f,justificativa:document.getElementById('ij').value})});const d=await r.json();sr(d.retorno,!d.sucesso)}catch(e){sr('Erro: '+e.message,true)}finally{sp('inutilizar',false)}}
+document.querySelectorAll('.ov').forEach(function(el){el.addEventListener('click',function(e){if(e.target===el)el.classList.remove('open')})});
+window.addEventListener('load',async function(){const b=document.getElementById('sbadge');try{const r=await fetch('/api/status');const d=await r.json();if(d.sucesso){b.textContent='Servidor online';b.style.background='var(--pr-bg)';b.style.color='var(--pr-lt)';b.style.borderColor='var(--pr-bd)'}}catch(e){b.textContent='Servidor offline';b.style.background='var(--rd-bg)';b.style.color='var(--rd)'}});
 </script>
 </body>
 </html>

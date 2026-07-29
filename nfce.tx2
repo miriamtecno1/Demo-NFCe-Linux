@@ -1,4 +1,4 @@
-Formato=tx2
+
 INCLUIR
 Id_A03=0
 versao_A02=4.00
@@ -7,9 +7,9 @@ cNF_B03=22
 natOp_B04=VENDA
 mod_B06=65
 serie_B07=60
-nNF_B08=69
+nNF_B08=71
 cUF_B02=41
-dhEmi_B09=2026-07-27T21:05:00-03:00
+dhEmi_B09=2026-07-29T19:59:00-03:00
 tpNF_B11=1
 idDest_B11a=1
 cMunFG_B12=4115200

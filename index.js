@@ -101,7 +101,7 @@ async function main() {
     const chaveNota = process.argv[3];
     if (!chaveNota) {
       console.log('Informe a chave da nota. Exemplo:');
-      console.log('node index.js imprimir 41260429062609000177650600000000671000000220');
+      console.log('node index.js imprimir 51180927075116000146650010000002611000002611');
       return;
     }
     
